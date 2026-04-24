@@ -16,7 +16,7 @@ import com.github.parrotxray.lavabili.plugin.LavabiliPlugin
 import com.github.parrotxray.lavabili.plugin.BilibiliConfig
 import com.github.parrotxray.lavabili.util.CookieRefreshManager
 // LavaSearch imports
-import com.github.topi314.lavasearch.SearchManager
+import com.github.topi314.lavasearch.AudioSearchManager
 import com.github.topi314.lavasearch.result.AudioSearchResult
 import com.github.topi314.lavasearch.result.BasicAudioSearchResult
 import org.apache.http.client.methods.CloseableHttpResponse
@@ -29,8 +29,8 @@ import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
 import java.util.regex.Pattern
 
-// Implement SearchManager to add LavaSearch compatibility
-class BilibiliAudioSourceManager(private val config: BilibiliConfig? = null) : AudioSourceManager, SearchManager {
+// Implement AudioSearchManager to add LavaSearch compatibility
+class BilibiliAudioSourceManager(private val config: BilibiliConfig? = null) : AudioSourceManager, AudioSearchManager {
     val log: Logger = LoggerFactory.getLogger(LavabiliPlugin::class.java)
 
     val httpInterface: HttpInterface
