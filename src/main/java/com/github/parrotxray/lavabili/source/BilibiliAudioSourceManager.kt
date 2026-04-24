@@ -78,7 +78,8 @@ class BilibiliAudioSourceManager(private val config: BilibiliConfig? = null) : A
         }
     }
 
-    override fun getSourceName(): String? {
+    // CORREÇÃO: Removido o '?' do String
+    override fun getSourceName(): String {
         return "bilibili"
     }
 
