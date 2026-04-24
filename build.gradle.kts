@@ -30,9 +30,10 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
     compileOnly(libs.lavalink.server)
     compileOnly(libs.lavaplayer)
-
+    compileOnly("com.github.topi314.lavasearch:lavasearch-plugin-api:1.0.0")
 }
 repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") } // For LavaPlayer dependencies
+    maven { url = uri("https://maven.lavalink.dev/releases") }
 }
