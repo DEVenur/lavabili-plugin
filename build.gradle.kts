@@ -30,11 +30,10 @@ dependencies {
     compileOnly(libs.lavalink.server)
     compileOnly(libs.lavaplayer)
     compileOnly("com.github.topi314.lavasearch:lavasearch-plugin-api:1.0.0")
-    compileOnly("com.github.topi314.lavalyrics:lavalyrics-plugin-api:1.0.0")
 }
 
 repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
-    maven { url = uri("https://maven.lavalink.dev/releases") }
+    maven { url = uri("https://maven.topi.wtf/releases") }
 }
