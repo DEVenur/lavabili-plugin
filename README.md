@@ -12,7 +12,8 @@ A Lavalink plugin that adds **Bilibili** as an audio source, rebuilt for the lat
 ## Features
 
 - **Audio Playback**: Stream audio from Bilibili videos
-- **Search Support**: Search Bilibili videos using `bilisearch:` prefix
+- **Smart Search**: `bilisearch:` prioritizes the Bilibili Audio platform (official releases, singles, albums), falling back to music-category videos only when needed
+- **LavaSearch Compatible**: Implements `AudioSearchManager` for use with [LavaSearch](https://github.com/topi314/LavaSearch)
 - **Multi-part Videos**: Support for videos with multiple parts (`?p=` parameter)
 - **Playlist Support**: Handle Bilibili audio playlists
 - **Short URL Support**: Automatically resolve b23.tv short links
@@ -46,8 +47,22 @@ plugins:
       dedeUserId: "paste your dedeUserId here if applicable"
       buvid3: "paste your buvid3 here if applicable"
       buvid4: "paste your buvid4 here if applicable"
-      acTimeValue: "paste your buvid4 here if applicable" # Used to refresh cookies after the login status expires. Without this value, you can only log in again. If you do not need to refresh the credentials, you do not need to provide it
+      acTimeValue: "paste your ac_time_value here if applicable" # Used to refresh cookies after the login status expires. Without this value, you can only log in again. If you do not need to refresh the credentials, you do not need to provide it
 ```
+
+### Optional: LavaSearch Integration
+
+If you use [LavaSearch](https://github.com/topi314/LavaSearch), add it alongside this plugin:
+
+```yaml
+lavalink:
+  plugins:
+    - dependency: "com.github.ParrotXray:lavabili-plugin:VERSION"
+      repository: "https://jitpack.io"
+    - dependency: "com.github.topi314.lavasearch:lavasearch-plugin:1.0.0"
+```
+
+Once both plugins are loaded, `bilisearch:` queries are automatically routed through the `/v4/loadsearch` endpoint.
 
 ## Getting Bilibili Cookies for Authentication
 
@@ -85,9 +100,9 @@ For Reference: https://nemo2011.github.io/bilibili-api/#/get-credential
 1. Login to [bilibili.com](https://www.bilibili.com)
 2. Press `F12` → `Application` tab → find `Cookie` in the `Storage` tab
 3. Find `www.bilibili.com` request
-4. Extract values for `SESSDATA`, `bili_jct`, `DedeUserID`, `buvid3`, `buvid4`, and `DedeUserID`
-5. find `Local storage` in the `Storage` tab
-6. Extract values for `ac_time_value`
+4. Extract values for `SESSDATA`, `bili_jct`, `DedeUserID`, `buvid3`, `buvid4`
+5. Find `Local storage` in the `Storage` tab
+6. Extract value for `ac_time_value`
 
 **⚠️ Security Warning**: Never share your cookies - they're equivalent to your login credentials!
 
@@ -95,34 +110,40 @@ For Reference: https://nemo2011.github.io/bilibili-api/#/get-credential
 
 ### Direct Video URLs
 
-```bash
+```
 # Single video
 https://www.bilibili.com/video/BV1NVWxeeEVJ
 
 # Specific part of multi-part video (plays only part 2)
 https://www.bilibili.com/video/BV1NVWxeeEVJ?p=2
 
-# Multi-part video without specific part (shows full playlist)
+# Multi-part video without specific part (loads full playlist)
 https://www.bilibili.com/video/BV1NVWxeeEVJ
 ```
 
-### Search Functionality
+### Search
 
-```bash
-# Search for videos
+```
 bilisearch:your search query here
 ```
 
+Search uses a **two-step strategy**:
+
+1. **Bilibili Audio platform** is queried first — these are pure audio uploads (official releases, singles, albums, instrumental tracks).
+2. **Music-category videos** (`tids_1=3`, ordered by play count) are used as a **fallback** only if the audio search returns fewer than 5 results. This keeps gaming videos, vlogs and unrelated content out of search results.
+
+Direct URLs are not affected by this logic — any Bilibili URL still loads normally.
+
 ### Short URLs
 
-```bash
+```
 # b23.tv short links are automatically resolved
 https://b23.tv/abc123
 ```
 
 ### Audio URLs
 
-```bash
+```
 # Single audio track
 https://www.bilibili.com/audio/au123456
 
@@ -209,26 +230,27 @@ https://www.bilibili.com/audio/am789012
 | Type | Format | Example |
 |------|--------|---------|
 | **Video** | `bilibili.com/video/BV*` | `https://www.bilibili.com/video/BV1NVWxeeEVJ` |
+| **Video (AV)** | `bilibili.com/video/av*` | `https://www.bilibili.com/video/av170001` |
 | **Video (Multi-part)** | `bilibili.com/video/BV*?p=N` | `https://www.bilibili.com/video/BV1NVWxeeEVJ?p=2` |
 | **Audio Track** | `bilibili.com/audio/au*` | `https://www.bilibili.com/audio/au123456` |
 | **Audio Playlist** | `bilibili.com/audio/am*` | `https://www.bilibili.com/audio/am789012` |
 | **Short URL** | `b23.tv/*` | `https://b23.tv/abc123` |
-| **Search** | `bilisearch:query` | `bilisearch:music video` |
+| **Search** | `bilisearch:query` | `bilisearch:lofi music` |
 
 ## Configuration Options
 
 | Option | Type | Default | Description |
 |--------|------|---------|-------------|
 | `enabled` | Boolean | `false` | Enable/disable Bilibili source |
-| `allowSearch` | Boolean | `true` | Whether "bilisearch:" can be used |
+| `allowSearch` | Boolean | `true` | Whether `bilisearch:` can be used |
 | `playlistPageCount` | Integer | `-1` | Limit playlist pages (-1 = no limit) |
-| `auth.enabled` | Boolean | `false` | Enable login authentication |
+| `auth.enabled` | Boolean | `false` | Enable cookie authentication |
 | `auth.sessdata` | String | `""` | Bilibili session token |
 | `auth.biliJct` | String | `""` | CSRF protection token |
 | `auth.dedeUserId` | String | `""` | User ID |
 | `auth.buvid3` | String | `""` | Device identifier |
 | `auth.buvid4` | String | `""` | Device identifier |
-| `auth.acTimeValue` | String | `""` | Refresh token for automatic cookie refresh |
+| `auth.acTimeValue` | String | `""` | Refresh token for automatic cookie renewal |
 
 ## Contributing
 
@@ -248,6 +270,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Original plugin by [hoyiliang](https://github.com/hoyiliang/lavabili-plugin)
 - [Lavalink](https://github.com/lavalink-devs/Lavalink) for the audio framework
+- [LavaSearch](https://github.com/topi314/LavaSearch) for the search integration API
 - Bilibili for providing the platform
 
 ## Support
