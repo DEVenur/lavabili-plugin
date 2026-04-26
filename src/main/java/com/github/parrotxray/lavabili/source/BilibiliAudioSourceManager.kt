@@ -506,7 +506,8 @@ class BilibiliAudioSourceManager(private val config: BilibiliConfig? = null) : A
         track as BilibiliAudioTrack
         DataFormatTools.writeNullableText(output, track.type.toString())
         DataFormatTools.writeNullableText(output, track.id)
-        DataFormatTools.writeNullableText(output, track.cid.toString())
+        // Write cid as null when not present (AUDIO tracks have no cid)
+        DataFormatTools.writeNullableText(output, track.cid?.toString())
     }
 
     override fun decodeTrack(trackInfo: AudioTrackInfo, input: DataInput): AudioTrack {
@@ -517,7 +518,10 @@ class BilibiliAudioSourceManager(private val config: BilibiliConfig? = null) : A
             "AUDIO" -> BilibiliAudioTrack.TrackType.AUDIO
             else -> throw IllegalArgumentException("ERROR: Must be VIDEO or AUDIO")
         }
-        return BilibiliAudioTrack(trackInfo, trackType, DataFormatTools.readNullableText(input), DataFormatTools.readNullableText(input).toLong(), this)
+        val id = DataFormatTools.readNullableText(input)
+        // cid is null for AUDIO tracks — toLongOrNull handles the "null" string safely
+        val cid = DataFormatTools.readNullableText(input)?.toLongOrNull()
+        return BilibiliAudioTrack(trackInfo, trackType, id, cid, this)
     }
 
     override fun shutdown() {}
